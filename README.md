@@ -1,10 +1,7 @@
-![image](https://user-images.githubusercontent.com/487999/79708354-29074a80-82fa-11ea-80df-0db3962fb453.png)
-![image](https://user-images.githubusercontent.com/78134046/108176809-c95e1380-7145-11eb-8949-15a6a02f5094.png)
 
-# 예제 - 음식배달 (수정)
+# 쇼핑몰
 
-본 예제는 MSA/DDD/Event Storming/EDA 를 포괄하는 분석/설계/구현/운영 전단계를 커버하도록 구성한 예제입니다.
-이는 클라우드 네이티브 애플리케이션의 개발에 요구되는 체크포인트들을 통과하기 위한 예시 답안을 포함합니다.
+
 - 체크포인트 : https://workflowy.com/s/assessment-check-po/T5YrzcMewfo4J6LW
 
 
@@ -32,14 +29,15 @@
 배달의 민족 커버하기 - https://1sung.tistory.com/106
 
 기능적 요구사항
-1. 고객이 메뉴를 선택하여 주문한다
-1. 고객이 결제한다
-1. 주문이 되면 주문 내역이 입점상점주인에게 전달된다
-1. 상점주인이 확인하여 요리해서 배달 출발한다
-1. 고객이 주문을 취소할 수 있다
-1. 주문이 취소되면 배달이 취소된다
-1. 고객이 주문상태를 중간중간 조회한다
-1. 주문상태가 바뀔 때 마다 카톡으로 알림을 보낸다
+
+  고객이 상품을 선택하여 주문한다
+  고객이 결제한다
+  주문이 되면 주문 내역이 입점상점주인에게 전달된다
+  상점주인이 확인하여 포장해서 배송 의뢰한다
+  고객이 주문을 취소할 수 있다
+  주문이 취소되면 배송이 취소 요청된다
+  고객이 주문상태를 중간중간 조회한다
+  주문상태가 바뀔 때 마다 카톡으로 알림을 보낸다
 
 비기능적 요구사항
 1. 트랜잭션
@@ -328,41 +326,6 @@ public interface 주문Repository extends JpaRepository<Order, UUID>{
     database: mongo-example
 
 ```
-
-## 폴리글랏 프로그래밍
-
-고객관리 서비스(customer)의 시나리오인 주문상태, 배달상태 변경에 따라 고객에게 카톡메시지 보내는 기능의 구현 파트는 해당 팀이 python 을 이용하여 구현하기로 하였다. 해당 파이썬 구현체는 각 이벤트를 수신하여 처리하는 Kafka consumer 로 구현되었고 코드는 다음과 같다:
-```
-from flask import Flask
-from redis import Redis, RedisError
-from kafka import KafkaConsumer
-import os
-import socket
-
-
-# To consume latest messages and auto-commit offsets
-consumer = KafkaConsumer('fooddelivery',
-                         group_id='',
-                         bootstrap_servers=['localhost:9092'])
-for message in consumer:
-    print ("%s:%d:%d: key=%s value=%s" % (message.topic, message.partition,
-                                          message.offset, message.key,
-                                          message.value))
-
-    # 카톡호출 API
-```
-
-파이선 애플리케이션을 컴파일하고 실행하기 위한 도커파일은 아래와 같다 (운영단계에서 할일인가? 아니다 여기 까지가 개발자가 할일이다. Immutable Image):
-```
-FROM python:2.7-slim
-WORKDIR /app
-ADD . /app
-RUN pip install --trusted-host pypi.python.org -r requirements.txt
-ENV NAME World
-EXPOSE 8090
-CMD ["python", "policy-handler.py"]
-```
-
 
 ## 동기식 호출 과 Fallback 처리
 
